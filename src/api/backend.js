@@ -77,6 +77,9 @@ export async function getMovies() {
   const data = await apiFetch('/api/movies');
   return data.items;
 }
+
 export async function getMovie(movieId) {
-  return apiFetch('/api/movies/${movieId}'); //ได้ {movie,reviwes,vote,inWishlist}
+  return apiFetch(`/api/movies/${movieId}`);
 }
+
+

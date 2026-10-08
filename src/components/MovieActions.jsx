@@ -1,13 +1,50 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { putVote, addToWishlist, removeFromWishlist } from '../api/backend';
+import {
+  putVote,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist
+} from '../api/backend';
 
 function MovieActions({ movieId }) {
   const { isLoggedIn, token } = useAuth();
   const [myScore, setMyScore] = useState(null);
   const [inWishlist, setInWishlist] = useState(false);
   const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    if (!isLoggedIn || !token) {
+      return;
+    }
+
+    let ignore = false;
+
+    async function loadWishlist() {
+      try {
+        const data = await getWishlist(token);
+
+        if (!ignore) {
+          const found = data.items.some(
+            movie => String(movie.id) === String(movieId)
+          );
+
+          setInWishlist(found);
+        }
+      } catch (err) {
+        if (!ignore) {
+          setInWishlist(false);
+        }
+      }
+    }
+
+    loadWishlist();
+
+    return () => {
+      ignore = true;
+    };
+  }, [movieId, token, isLoggedIn]);
 
   if (!isLoggedIn) {
     return (
@@ -49,7 +86,9 @@ function MovieActions({ movieId }) {
   return (
     <div className="mt-4 space-y-3">
       <div className="flex flex-wrap items-center gap-1">
-        <span className="mr-2 text-sm text-slate-500">ให้คะแนน</span>
+        <span className="mr-2 text-sm text-slate-500">
+          ให้คะแนน
+        </span>
 
         {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
           <button
